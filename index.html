@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Blind Test</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: monospace;
+  }
+
+  /* Cache complètement la vidéo YouTube */
+  #yt-container {
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #screen {
+    text-align: center;
+    color: #222;
+    user-select: none;
+  }
+
+  #card-num {
+    font-size: 5rem;
+    font-weight: bold;
+    color: #1a1a1a;
+    letter-spacing: 8px;
+  }
+
+  #status {
+    font-size: 0.75rem;
+    color: #1a1a1a;
+    margin-top: 12px;
+    letter-spacing: 2px;
+  }
+
+  /* Petite animation de "son en cours" */
+  #bars {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    align-items: flex-end;
+    height: 24px;
+    margin-top: 20px;
+  }
+  .bar {
+    width: 4px;
+    background: #222;
+    border-radius: 2px;
+    animation: bounce 1s ease-in-out infinite;
+  }
+  .bar:nth-child(1) { animation-delay: 0s;    height: 8px; }
+  .bar:nth-child(2) { animation-delay: 0.15s; height: 16px; }
+  .bar:nth-child(3) { animation-delay: 0.3s;  height: 24px; }
+  .bar:nth-child(4) { animation-delay: 0.15s; height: 16px; }
+  .bar:nth-child(5) { animation-delay: 0s;    height: 8px; }
+
+  @keyframes bounce {
+    0%, 100% { transform: scaleY(0.4); }
+    50%       { transform: scaleY(1); }
+  }
+
+  .bar.paused { animation-play-state: paused; }
+
+  #tap-hint {
+    position: fixed;
+    bottom: 40px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.6rem;
+    color: #111;
+    letter-spacing: 3px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Lecteur YouTube caché -->
+<div id="yt-container">
+  <div id="player"></div>
+</div>
+
+<div id="screen">
+  <div id="card-num">—</div>
+  <div id="bars">
+    <div class="bar paused"></div>
+    <div class="bar paused"></div>
+    <div class="bar paused"></div>
+    <div class="bar paused"></div>
+    <div class="bar paused"></div>
+  </div>
+  <div id="status">chargement...</div>
+</div>
+
+<div id="tap-hint">appuyer pour relancer</div>
+
+<script>
+// ── LISTE DES CHANSONS (id YouTube extrait des liens) ──────────────────────
+const songs = {
+   1: { id: "Oudg1KpSIV8" },
+   2: { id: "-7DpZUKgpjk" },
+   3: { id: "cbMgzkjJcDA" },
+   4: { id: "LtbMY6AGioc" },
+   5: { id: "7kHo8FvjMv4" },
+   6: { id: "Ymh15CEloM8" },
+   7: { id: "tQ1sRTfbxxg" },
+   8: { id: "zrT0UYCeT1w" },
+   9: { id: "f1h9_mxQbnU" },
+  10: { id: "g6QRV9Fzv1Y" },
+  11: { id: "SkarLHsSnA4" },
+  12: { id: "wEgl-Ugs-iY" },
+  13: { id: "YGezQhUBYmU" },
+  14: { id: "dLjvs3afOHE" },
+  15: { id: "0TYKFZijyRc" },
+  16: { id: "tkaQL_j4pxM" },
+  17: { id: "gDxSQMWXKss" },
+  18: { id: "_aCzwan1Lto" },
+  19: { id: "mAUn_cqF2CU" },
+  20: { id: "EpG7Eeq39qE" },
+  21: { id: "WyDEZT5bOow" },
+  22: { id: "vxt6EFYfnVY" },
+  23: { id: "UDy4cbDfyV4" },
+  24: { id: "0W5eDmHG8PY" },
+  25: { id: "serL-hnZP4Y" },
+  26: { id: "LgxDgjEa1wY" },
+  27: { id: "ZHbxZ5RAHNI" },
+  28: { id: "zZnV64lv9wk" },
+  29: { id: "tdWnrbUf0sk" },
+  30: { id: "DWiiuWGYqQ8" },
+  31: { id: "2QuW4YgOpAA" },
+  32: { id: "LyM_bEkdoaw" },
+  33: { id: "WWawqO2PZN4" },
+  34: { id: "Rp0CTIX5d4E" },
+  35: { id: "Ku42ZvLfvPs" },
+  36: { id: "pJsdsQoY_aQ" },
+  37: { id: "mRvUT96JgbM" },
+  38: { id: "93JKUnPBANU" },
+  39: { id: "YeFWiluscbw" },
+  40: { id: "DRl6NyLtGEA" },
+  41: { id: "ypNpnoKfqok" },
+  42: { id: "o3pMSThaJhg" },
+  43: { id: "01N6GGYyaTE" },
+  44: { id: "-sEzjwjdS18" },
+  45: { id: "wHicXdfxopQ" },
+  46: { id: "LilpleXgDXo" },
+  47: { id: "q9KvXpnEQU4" },
+  48: { id: "jMJvj4gWbD4" },
+  49: { id: "ieAtGZf_xoo" },
+  50: { id: "1B1DduVCZqg" },
+  51: { id: "YkoXOM-mgn8" },
+  52: { id: "L5TrEJPVCgU" },
+  53: { id: "KsYhoOcRlcQ" },
+  54: { id: "7e1qUklCEDA" },
+  55: { id: "Ld9atdnJmk0" },
+};
+
+// ── LECTURE DU HASH ─────────────────────────────────────────────────────────
+const hash = parseInt(window.location.hash.replace('#', '')) || null;
+const song = hash && songs[hash] ? songs[hash] : null;
+
+const cardNumEl = document.getElementById('card-num');
+const statusEl  = document.getElementById('status');
+const bars      = document.querySelectorAll('.bar');
+
+function setPlaying(playing) {
+  bars.forEach(b => b.classList.toggle('paused', !playing));
+  statusEl.textContent = playing ? '♪ en cours' : 'en pause';
+}
+
+if (!song) {
+  cardNumEl.textContent = '?';
+  statusEl.textContent  = 'carte introuvable';
+} else {
+  cardNumEl.textContent = `#${hash}`;
+  statusEl.textContent  = 'chargement...';
+}
+
+// ── YOUTUBE IFRAME API ──────────────────────────────────────────────────────
+let player;
+
+window.onYouTubeIframeAPIReady = function() {
+  if (!song) return;
+  player = new YT.Player('player', {
+    height: '1',
+    width:  '1',
+    videoId: song.id,
+    playerVars: {
+      autoplay:       1,
+      controls:       0,
+      disablekb:      1,
+      fs:             0,
+      iv_load_policy: 3,
+      modestbranding: 1,
+      rel:            0,
+      showinfo:       0,
+      playsinline:    1,
+    },
+    events: {
+      onReady: e => {
+        e.target.setVolume(100);
+        e.target.playVideo();
+        setPlaying(true);
+        statusEl.textContent = '♪ en cours';
+      },
+      onStateChange: e => {
+        const S = YT.PlayerState;
+        if (e.data === S.PLAYING) setPlaying(true);
+        if (e.data === S.PAUSED || e.data === S.ENDED) setPlaying(false);
+      },
+      onError: () => {
+        statusEl.textContent = 'erreur lecture';
+        setPlaying(false);
+      }
+    }
+  });
+};
+
+// Tap pour pause/play
+document.body.addEventListener('click', () => {
+  if (!player) return;
+  const state = player.getPlayerState();
+  if (state === YT.PlayerState.PLAYING) player.pauseVideo();
+  else player.playVideo();
+});
+
+// Charger l'API YouTube
+const tag = document.createElement('script');
+tag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(tag);
+</script>
+</body>
+</html>
