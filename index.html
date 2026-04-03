@@ -16,10 +16,8 @@
     font-family: monospace;
   }
   #yt-container {
-    position: fixed;
-    top: -9999px; left: -9999px;
-    width: 1px; height: 1px;
-    opacity: 0; pointer-events: none;
+    position: fixed; top: -9999px; left: -9999px;
+    width: 1px; height: 1px; opacity: 0; pointer-events: none;
   }
   #screen { text-align: center; user-select: none; }
   #card-num {
@@ -49,6 +47,13 @@
     font-size: 0.75rem; color: #1a1a1a;
     margin-top: 12px; letter-spacing: 2px;
   }
+  #error-msg {
+    display: none;
+    font-size: 0.65rem; color: #8b0000;
+    margin-top: 14px; letter-spacing: 1px;
+    max-width: 260px; line-height: 1.7;
+    text-align: center;
+  }
   #tap-hint {
     position: fixed; bottom: 40px; width: 100%;
     text-align: center; font-size: 0.6rem;
@@ -57,7 +62,9 @@
 </style>
 </head>
 <body>
+
 <div id="yt-container"><div id="player"></div></div>
+
 <div id="screen">
   <div id="card-num">—</div>
   <div id="bars">
@@ -68,11 +75,12 @@
     <div class="bar paused"></div>
   </div>
   <div id="status">chargement...</div>
+  <div id="error-msg"></div>
 </div>
 <div id="tap-hint">appuyer pour pause / lecture</div>
 
 <script>
-// ── DECK RAP FRANÇAIS (#1–#55) ──────────────────────────────────────────────
+// ── DECK RAP FRANÇAIS (#1–#55) — YouTube ────────────────────────────────────
 const rap = {
    1:"Oudg1KpSIV8",  2:"-7DpZUKgpjk",  3:"cbMgzkjJcDA",  4:"LtbMY6AGioc",
    5:"7kHo8FvjMv4",  6:"Ymh15CEloM8",  7:"tQ1sRTfbxxg",  8:"zrT0UYCeT1w",
@@ -90,30 +98,68 @@ const rap = {
   53:"KsYhoOcRlcQ", 54:"7e1qUklCEDA", 55:"Ld9atdnJmk0",
 };
 
-// ── DECK HITS INTEMPORELS (#101–#150) ──────────────────────────────────────
+// ── DECK HITS (#101–#150) — Deezer preview 30s, sans pub, sans blocage ──────
+// IDs Deezer : api.deezer.com/track/ID
 const hits = {
-  101:"hTWKbfoikeg", 102:"3JWTaaS7LdU", 103:"fPO76Jlnz6c", 104:"eVeH9_2oEYk",
-  105:"4fndeDfaWCg", 106:"nZXRV4MezEw", 107:"bx1Bh8ZvH84", 108:"FrLequ6dUdM",
-  109:"p47fEXGabaY", 110:"gJLIiF15wGQ", 111:"_Yhyp-_hX2s", 112:"ViwtNLUqkMY",
-  113:"EVxBD9N4cpE", 114:"PWgvGjAhvIw", 115:"KUmZp8pR1uc", 116:"3gOHSGnMAfI",
-  117:"bd2B6SjMh_w", 118:"CvBfHwUxHIk", 119:"6vwNcNOTVzY", 120:"5qm8PH4xAss",
-  121:"rYEDA3JcQqw", 122:"5NV6Rdv1h3Q", 123:"9bZkp7q19f0", 124:"yyDUC1LUXSU",
-  125:"ZbZSe6N_BXs", 126:"JGwWNGJdvx8", 127:"OPf0YbXqDm0", 128:"2vjPBrBU-TM",
-  129:"iuqMd5CTkLk", 130:"kTJczUoc26U", 131:"4NRXx6pOmvk", 132:"DyDfgMOUjCI",
-  133:"r7qovpFAGrQ", 134:"UceaB4D0jpo", 135:"tvTRZJ-4EyI", 136:"PMivT7MJ41M",
-  137:"PEGccV-NOm8", 138:"VYOjWnS4cMY", 139:"gl1aHhXnN1k", 140:"I9-hSNSEHmY",
-  141:"ZmDBbnmKpqQ", 142:"oMjHG_UcDhc", 143:"KPeUoGmLDjY", 144:"TFCi_H6hcE4",
-  145:"H5v3kku4y6Q", 146:"b1kbLwvqugk", 147:"E9Z13uaIUP8", 148:"G7KNmW9a75Y",
-  149:"M8pHPMq1Nok", 150:"eVli-ystv5Q",
+  101: 906336,      // Nirvana – Smells Like Teen Spirit
+  102: 51547,       // Whitney Houston – I Will Always Love You
+  103: 67261691,    // Coolio – Gangsta's Paradise
+  104: 72890,       // Notorious B.I.G. – Hypnotize
+  105: 731729,      // Backstreet Boys – I Want It That Way
+  106: 3157621,     // Cher – Believe
+  107: 1109731,     // Oasis – Wonderwall
+  108: 659784,      // TLC – No Scrubs
+  109: 2178,        // Ricky Martin – Livin' la Vida Loca
+  110: 720181,      // Spice Girls – Wannabe
+  111: 916424,      // Eminem – Lose Yourself
+  112: 916886,      // Beyoncé – Crazy In Love
+  113: 1207274,     // Nelly – Hot In Herre
+  114: 4037491,     // Outkast – Hey Ya!
+  115: 1258841,     // Amy Winehouse – Rehab
+  116: 5535873,     // Justin Timberlake – SexyBack
+  117: 1638695,     // Gnarls Barkley – Crazy
+  118: 2557980,     // Rihanna – Umbrella
+  119: 1179944,     // Kanye West – Gold Digger
+  120: 720672,      // 50 Cent – In Da Club
+  121: 10444881,    // Adele – Rolling in the Deep
+  122: 67247832,    // Daft Punk – Get Lucky
+  123: 67491400,    // PSY – Gangnam Style
+  124: 67550766,    // Robin Thicke – Blurred Lines
+  125: 67545996,    // Pharrell Williams – Happy
+  126: 135558798,   // Ed Sheeran – Shape of You
+  127: 86270958,    // Mark Ronson ft Bruno Mars – Uptown Funk
+  128: 81592187,    // Sia – Chandelier
+  129: 126068641,   // Drake – One Dance
+  130: 119206016,   // Luis Fonsi – Despacito
+  131: 725215792,   // The Weeknd – Blinding Lights
+  132: 705657042,   // Billie Eilish – Bad Guy
+  133: 702490342,   // Lil Nas X – Old Town Road
+  134: 455978651,   // Post Malone – Rockstar
+  135: 391579151,   // Kendrick Lamar – HUMBLE.
+  136: 325964691,   // Bruno Mars – That's What I Like
+  137: 376636521,   // Cardi B – Bodak Yellow
+  138: 547876502,   // Childish Gambino – This Is America
+  139: 744977482,   // Ariana Grande – Thank U, Next
+  140: 752325062,   // Lizzo – Truth Hurts
+  141: 1255793642,  // Olivia Rodrigo – drivers license
+  142: 1086591692,  // Doja Cat – Say So
+  143: 1242440852,  // Bad Bunny – Dakiti
+  144: 1213604682,  // Dua Lipa – Levitating
+  145: 1668497677,  // Harry Styles – As It Was
+  146: 1762791807,  // Taylor Swift – Anti-Hero
+  147: 1665008827,  // SZA – Kill Bill
+  148: 1848132067,  // Miley Cyrus – Flowers
+  149: 1929036207,  // Ice Spice – Princess Diana
+  150: 2399644985,  // Sabrina Carpenter – Espresso
 };
 
-const hash = parseInt(window.location.hash.replace('#','')) || null;
-let ytId = null;
-if (hash >= 1   && hash <= 55  && rap[hash])  ytId = rap[hash];
-if (hash >= 101 && hash <= 150 && hits[hash]) ytId = hits[hash];
-
+// ── INIT ─────────────────────────────────────────────────────────────────────
+const hash      = parseInt(window.location.hash.replace('#','')) || null;
+const isRap     = hash >= 1   && hash <= 55;
+const isHits    = hash >= 101 && hash <= 150;
 const cardNumEl = document.getElementById('card-num');
 const statusEl  = document.getElementById('status');
+const errorEl   = document.getElementById('error-msg');
 const bars      = document.querySelectorAll('.bar');
 
 function setPlaying(p) {
@@ -121,7 +167,14 @@ function setPlaying(p) {
   statusEl.textContent = p ? '♪ en cours' : 'en pause';
 }
 
-if (!ytId) {
+function showError(msg) {
+  setPlaying(false);
+  errorEl.style.display = 'block';
+  errorEl.textContent   = '⚠ ' + msg;
+  statusEl.textContent  = 'erreur';
+}
+
+if (!hash || (!isRap && !isHits)) {
   cardNumEl.textContent = '?';
   statusEl.textContent  = 'carte introuvable';
 } else {
@@ -129,37 +182,91 @@ if (!ytId) {
   statusEl.textContent  = 'chargement...';
 }
 
-let player;
-window.onYouTubeIframeAPIReady = function() {
-  if (!ytId) return;
-  player = new YT.Player('player', {
-    height:'1', width:'1', videoId: ytId,
-    playerVars: {
-      autoplay:1, controls:0, disablekb:1, fs:0,
-      iv_load_policy:3, modestbranding:1, rel:0,
-      showinfo:0, playsinline:1,
-    },
-    events: {
-      onReady: e => { e.target.setVolume(100); e.target.playVideo(); },
-      onStateChange: e => {
-        const S = YT.PlayerState;
-        if (e.data === S.PLAYING) setPlaying(true);
-        if (e.data === S.PAUSED || e.data === S.ENDED) setPlaying(false);
-      },
-      onError: () => { statusEl.textContent = 'erreur lecture'; setPlaying(false); }
+// ── MODE HITS : Deezer preview audio (30s, sans pub) ─────────────────────────
+if (isHits) {
+  const deezerId = hits[hash];
+  let audio = null;
+
+  // Appel JSONP pour récupérer l'URL de preview
+  window._deezerCB = (data) => {
+    if (!data || !data.preview) {
+      showError('Preview Deezer indisponible pour ce titre.');
+      return;
     }
+    audio = new Audio(data.preview);
+    audio.volume = 1;
+
+    const tryPlay = () => {
+      audio.play()
+        .then(() => { setPlaying(true); errorEl.style.display = 'none'; })
+        .catch(() => {
+          showError('Appuie sur l\'écran pour lancer la lecture.');
+        });
+    };
+
+    audio.addEventListener('ended',   () => setPlaying(false));
+    audio.addEventListener('pause',   () => setPlaying(false));
+    audio.addEventListener('playing', () => setPlaying(true));
+    audio.addEventListener('error',   () => showError('Erreur de lecture audio.'));
+
+    tryPlay();
+  };
+
+  const script = document.createElement('script');
+  script.src = `https://api.deezer.com/track/${deezerId}?output=jsonp&callback=_deezerCB`;
+  script.onerror = () => showError('Impossible de contacter Deezer. Vérifie ta connexion.');
+  document.head.appendChild(script);
+
+  // Tap pour pause/play
+  document.body.addEventListener('click', () => {
+    if (!audio) return;
+    audio.paused ? audio.play() : audio.pause();
   });
-};
+}
 
-document.body.addEventListener('click', () => {
-  if (!player) return;
-  player.getPlayerState() === YT.PlayerState.PLAYING
-    ? player.pauseVideo() : player.playVideo();
-});
+// ── MODE RAP : YouTube iframe (son uniquement, vidéo cachée) ──────────────────
+if (isRap) {
+  const ytId = rap[hash];
+  let player;
 
-const tag = document.createElement('script');
-tag.src = 'https://www.youtube.com/iframe_api';
-document.head.appendChild(tag);
+  window.onYouTubeIframeAPIReady = function() {
+    player = new YT.Player('player', {
+      height:'1', width:'1', videoId: ytId,
+      playerVars: {
+        autoplay:1, controls:0, disablekb:1, fs:0,
+        iv_load_policy:3, modestbranding:1, rel:0, showinfo:0, playsinline:1,
+      },
+      events: {
+        onReady:       e => { e.target.setVolume(100); e.target.playVideo(); },
+        onStateChange: e => {
+          const S = YT.PlayerState;
+          if (e.data === S.PLAYING) setPlaying(true);
+          if (e.data === S.PAUSED || e.data === S.ENDED) setPlaying(false);
+        },
+        onError: e => {
+          const msgs = {
+            2:   'Paramètre invalide.',
+            5:   'Erreur lecteur HTML5.',
+            100: 'Vidéo introuvable ou supprimée.',
+            101: 'Lecture en embed non autorisée par l\'artiste.',
+            150: 'Lecture en embed non autorisée par l\'artiste.',
+          };
+          showError('YouTube : ' + (msgs[e.data] || `Erreur ${e.data}.`));
+        }
+      }
+    });
+  };
+
+  document.body.addEventListener('click', () => {
+    if (!player) return;
+    player.getPlayerState() === YT.PlayerState.PLAYING
+      ? player.pauseVideo() : player.playVideo();
+  });
+
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+}
 </script>
 </body>
 </html>
